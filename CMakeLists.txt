@@ -14,4 +14,4 @@ include_directories(
 )
 
 add_executable(LinkPie ${FILES})
-target_link_libraries(LinkPie rt pthread)
+target_link_libraries(LinkPie pthread)
