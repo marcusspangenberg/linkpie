@@ -10,12 +10,14 @@
 #include <time.h>
 #include <unistd.h>
 #include "ableton/Link.hpp"
+#include "wiringPi.h"
 
 namespace {
 
 const double defaultTempo = 120.0;
 const double defaultQuantum = 4.0;
-constexpr std::chrono::microseconds updateInterval(10000);
+constexpr std::chrono::microseconds updateInterval(2000);
+constexpr std::chrono::microseconds pulseLength(100);
 
 bool isRunning = false;
 
@@ -25,6 +27,10 @@ constexpr std::chrono::microseconds timeDiff(const struct timespec& startTime, c
 
 constexpr std::chrono::microseconds toMicroSeconds(const struct timespec& inTime) {
     return std::chrono::microseconds(inTime.tv_sec * 1000000 + inTime.tv_nsec / 1000);
+}
+
+void setupGpio() {
+    pinMode(0, OUTPUT);
 }
 
 void startTransport(ableton::Link& link) {
@@ -40,6 +46,12 @@ void startTransport(ableton::Link& link) {
 
 void onPhaseChange(ableton::Link& link, const double phase) {
     fprintf(stderr, "Phase: %lf\n", phase);
+
+    digitalWrite(0, HIGH);
+
+    usleep(static_cast<useconds_t>(pulseLength.count()));
+
+    digitalWrite(0, LOW);
 }
 
 } // namespace
@@ -84,11 +96,10 @@ void threadFunction(ableton::Link* link, const std::chrono::microseconds interva
 }
 
 int main(int arch, char** argv) {
-    // struct sched_param schedParam;
+    struct sched_param schedParam;
 
-    // schedParam.sched_priority = 10;
-    // pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParam);
-    // perror("pthread_setschedparam");
+    schedParam.sched_priority = 10;
+    pthread_setschedparam(pthread_self(), SCHED_FIFO, &schedParam);
 
     ableton::Link link(defaultTempo);
     link.enable(true);
@@ -96,10 +107,10 @@ int main(int arch, char** argv) {
     isRunning = true;
     std::unique_ptr<std::thread> thread(new std::thread(threadFunction, &link, updateInterval));
 
-    // schedParam.sched_priority = 50;
-    // if (pthread_setschedparam(thread->native_handle(), SCHED_FIFO, &schedParam) != 0) {
-    //     fprintf(stderr, "Unable to set thread priority\n");
-    // }
+    schedParam.sched_priority = 99;
+    if (pthread_setschedparam(thread->native_handle(), SCHED_FIFO, &schedParam) != 0) {
+        fprintf(stderr, "Unable to set thread priority\n");
+    }
     
     sleep(10);
     isRunning = false;
