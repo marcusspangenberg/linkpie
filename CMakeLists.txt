@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(LinkPie)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Werror -Wno-multichar -DLINK_PLATFORM_LINUX=1")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Werror -Wno-multichar -Wno-psabi -DLINK_PLATFORM_LINUX=1")
 
 set(FILES
 	${FILES}
@@ -14,4 +14,4 @@ include_directories(
 )
 
 add_executable(LinkPie ${FILES})
-target_link_libraries(LinkPie pthread)
+target_link_libraries(LinkPie pthread wiringPi)
