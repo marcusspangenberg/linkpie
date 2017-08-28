@@ -18,6 +18,7 @@ const double defaultTempo = 120.0;
 const double defaultQuantum = 4.0;
 constexpr std::chrono::microseconds updateInterval(2000);
 constexpr std::chrono::microseconds pulseLength(100);
+const uint32_t pulseWiringPiGpioPin = 0;
 
 bool isRunning = false;
 
@@ -30,7 +31,9 @@ constexpr std::chrono::microseconds toMicroSeconds(const struct timespec& inTime
 }
 
 void setupGpio() {
+    wiringPiSetup();
     pinMode(0, OUTPUT);
+    digitalWrite(pulseWiringPiGpioPin, LOW);
 }
 
 void startTransport(ableton::Link& link) {
@@ -45,13 +48,9 @@ void startTransport(ableton::Link& link) {
 }
 
 void onPhaseChange(ableton::Link& link, const double phase) {
-    fprintf(stderr, "Phase: %lf\n", phase);
-
-    digitalWrite(0, HIGH);
-
+    digitalWrite(pulseWiringPiGpioPin0, HIGH);
     usleep(static_cast<useconds_t>(pulseLength.count()));
-
-    digitalWrite(0, LOW);
+    digitalWrite(pulseWiringPiGpioPin, LOW);
 }
 
 } // namespace
@@ -96,6 +95,8 @@ void threadFunction(ableton::Link* link, const std::chrono::microseconds interva
 }
 
 int main(int arch, char** argv) {
+    setupGpio();
+
     struct sched_param schedParam;
 
     schedParam.sched_priority = 10;
