@@ -48,7 +48,9 @@ void startTransport(ableton::Link& link) {
 }
 
 void onPhaseChange(ableton::Link& link, const double phase) {
-    digitalWrite(pulseWiringPiGpioPin0, HIGH);
+    fprintf(stderr, "Phase %lf\n", phase);
+
+    digitalWrite(pulseWiringPiGpioPin, HIGH);
     usleep(static_cast<useconds_t>(pulseLength.count()));
     digitalWrite(pulseWiringPiGpioPin, LOW);
 }
@@ -113,7 +115,10 @@ int main(int arch, char** argv) {
         fprintf(stderr, "Unable to set thread priority\n");
     }
     
-    sleep(10);
+    while(true) {
+        sleep(1);
+    }
+
     isRunning = false;
     thread->join();
 }
